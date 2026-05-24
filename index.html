@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Race Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #228B22; touch-action: none; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { background: #333; }
+        #startBtn { position: absolute; padding: 20px 40px; font-size: 20px; cursor: pointer; }
+        .controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around; }
+        .btn { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; border: none; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<button id="startBtn">НАЧАТЬ ИГРУ</button>
+<canvas id="gameCanvas"></canvas>
+<div class="controls">
+    <button class="btn" id="leftBtn">←</button>
+    <button class="btn" id="rightBtn">→</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('startBtn');
+    
+    canvas.width = 400;
+    canvas.height = window.innerHeight;
+
+    const carImg = new Image(); carImg.src = 'car.png';
+    const music = new Audio('music.mp3'); music.loop = true;
+
+    let car = { x: 175, y: canvas.height - 150, w: 50, h: 80, speed: 5 };
+    let isMovingLeft = false, isMovingRight = false;
+    let gameRunning = false;
+
+    // Управление
+    const btnL = document.getElementById('leftBtn');
+    const btnR = document.getElementById('rightBtn');
+    
+    btnL.addEventListener('touchstart', (e) => { e.preventDefault(); isMovingLeft = true; });
+    btnL.addEventListener('touchend', () => isMovingLeft = false);
+    btnR.addEventListener('touchstart', (e) => { e.preventDefault(); isMovingRight = true; });
+    btnR.addEventListener('touchend', () => isMovingRight = false);
+
+    startBtn.onclick = () => {
+        gameRunning = true;
+        startBtn.style.display = 'none';
+        music.play();
+        update();
+    };
+
+    function update() {
+        if (!gameRunning) return;
+
+        // Движение и ускорение
+        car.speed += 0.001; 
+        if (isMovingLeft) car.x -= 7;
+        if (isMovingRight) car.x += 7;
+
+        // Проверка вылета с трассы (трасса шириной 200px)
+        if (car.x < 100 || car.x > 250) {
+            car.x = 175;
+            car.speed = 5;
+        }
+
+        // Отрисовка
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#444'; // Трасса
+        ctx.fillRect(100, 0, 200, canvas.height);
+        
+        ctx.drawImage(carImg, car.x, car.y, car.w, car.h);
+
+        requestAnimationFrame(update);
+    }
+</script>
+</body>
+</html>
