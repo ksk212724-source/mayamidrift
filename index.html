@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI DRIFT PRO v2.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>body { margin: 0; background: #222; overflow: hidden; font-family: 'Arial', sans-serif; }</style>
+</head>
+<body>
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scene: {
+            preload: function() {
+                this.load.image('car', 'car.png');
+            },
+            create: function() {
+                const {width, height} = this.game.config;
+                this.roadWidth = 260;
+                this.speed = 6;
+                this.score = 0;
+                this.isDrifting = false;
+                this.isGameOver = false;
+
+                // Фон и дорога
+                this.add.rectangle(width/2, height/2, this.roadWidth, height * 2, 0x444444);
+                
+                // Эффект частиц (дым)
+                this.particles = this.add.particles(0, 0, 'car', {
+                    speed: 50, scale: {start: 0.1, end: 0}, alpha: {start: 0.5, end: 0},
+                    lifespan: 500, quantity: 2, emitZone: {source: new Phaser.Geom.Circle(0, 0, 10)}
+                });
+
+                this.car = this.add.rectangle(width/2, height * 0.7, 40, 70, 0x00d2ff).setStrokeStyle(4, 0xffffff);
+                this.pivot = this.add.circle(0, 0, 12, 0xff00ff);
+                this.line = this.add.graphics();
+                this.scoreText = this.add.text(20, 20, 'SCORE: 0', { fontSize: '28px', fill: '#00d2ff' });
+                this.particles.startFollow(this.car);
+
+                this.spawnPivot();
+                
+                this.input.on('pointerdown', () => { if(!this.isGameOver) this.isDrifting = true; });
+                this.input.on('pointerup', () => this.isDrifting = false);
+            },
+            spawnPivot: function() {
+                const side = Math.random() > 0.5 ? 1 : -1;
+                this.pivot.setPosition(this.game.config.width/2 + (side * 140), this.game.config.height * 0.1);
+            },
+            update: function() {
+                if (this.isGameOver) return;
+
+                if (this.isDrifting) {
+                    Phaser.Math.RotateAround(this.car, this.pivot.x, this.pivot.y, 0.09);
+                    this.car.angle += 7;
+                    this.line.clear().lineStyle(4, 0xff00ff).lineBetween(this.car.x, this.car.y, this.pivot.x, this.pivot.y);
+                } else {
+                    this.car.y -= this.speed;
+                    this.line.clear();
+                }
+
+                // Логика вылета
+                if (Math.abs(this.car.x - this.game.config.width/2) > this.roadWidth / 2 + 40) {
+                    this.gameOver();
+                }
+
+                if (this.car.y < 0) {
+                    this.car.y = this.game.config.height;
+                    this.score += 10;
+                    this.speed += 0.3;
+                    this.scoreText.setText('SCORE: ' + this.score);
+                    this.spawnPivot();
+                }
+            },
+            gameOver: function() {
+                this.isGameOver = true;
+                this.add.text(this.game.config.width/2, this.game.config.height/2, 'GAME OVER', 
+                    { fontSize: '40px', fill: '#ff0000' }).setOrigin(0.5);
+                this.time.delayedCall(1000, () => this.scene.restart());
+            }
+        }
+    };
+    new Phaser.Game(config);
+</script>
+</body>
+</html>
