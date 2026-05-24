@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>body { margin:0; overflow:hidden; background:#222; }</style>
+</head>
+<body>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scene: {
+            create: function() {
+                this.speed = 5;
+                this.score = 0;
+                this.moveDir = 0;
+
+                // Дорога
+                this.road = this.add.rectangle(window.innerWidth/2, 0, 250, window.innerHeight * 2, 0x333333);
+                
+                // Машинка
+                this.car = this.add.rectangle(window.innerWidth/2, window.innerHeight * 0.8, 40, 70, 0xff9800);
+                this.scoreText = this.add.text(20, 20, 'SCORE: 0', { fontSize: '24px', fill: '#fff' });
+
+                // Кнопки внутри Phaser (надежнее для мобилок)
+                const btnLeft = this.add.circle(80, window.innerHeight - 100, 50, 0xffffff, 0.3).setInteractive();
+                const btnRight = this.add.circle(window.innerWidth - 80, window.innerHeight - 100, 50, 0xffffff, 0.3).setInteractive();
+                
+                this.add.text(80, window.innerHeight - 100, '◀', {fontSize: '40px'}).setOrigin(0.5);
+                this.add.text(window.innerWidth - 80, window.innerHeight - 100, '▶', {fontSize: '40px'}).setOrigin(0.5);
+
+                btnLeft.on('pointerdown', () => this.moveDir = -1);
+                btnLeft.on('pointerup', () => this.moveDir = 0);
+                btnLeft.on('pointerout', () => this.moveDir = 0);
+                
+                btnRight.on('pointerdown', () => this.moveDir = 1);
+                btnRight.on('pointerup', () => this.moveDir = 0);
+                btnRight.on('pointerout', () => this.moveDir = 0);
+            },
+            update: function() {
+                // Плавная дорога
+                let offset = Math.sin(this.score / 60) * 2.5;
+                this.road.x = window.innerWidth/2 + offset;
+
+                // Движение машины
+                this.car.x += this.moveDir * 8;
+                
+                // Ускорение
+                this.speed += 0.002;
+                
+                // Проверка вылета
+                if (Math.abs(this.car.x - this.road.x) > 120) {
+                    this.score = 0;
+                    this.speed = 5;
+                }
+
+                this.score++;
+                this.scoreText.setText('SCORE: ' + Math.floor(this.score/10));
+            }
+        }
+    };
+    new Phaser.Game(config);
+</script>
+</body>
+</html>
