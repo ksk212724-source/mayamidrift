@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MAYAMI AI DRIFT</title>
+    <title>MAYAMI DRIFT</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #2ecc71; }
-    </style>
+    <style>body { margin: 0; background: #2ecc71; overflow: hidden; }</style>
 </head>
 <body>
 <script>
@@ -15,41 +13,54 @@
         type: Phaser.AUTO,
         width: window.innerWidth,
         height: window.innerHeight,
-        backgroundColor: '#2ecc71',
         scene: {
             preload: function() {
-                // Загружаем файлы из твоего репозитория
                 this.load.image('car', 'car.png');
-                this.load.audio('drift', 'drift.mp3');
                 this.load.audio('music', 'music.mp3');
             },
             create: function() {
-                const width = this.game.config.width;
-                const height = this.game.config.height;
-
-                // Дорога
-                this.add.rectangle(width/2, height/2, 220, height, 0x333333);
+                const {width, height} = this.game.config;
+                this.score = 0;
+                
+                // Дорога (сетка)
+                this.add.rectangle(width/2, height/2, 250, height * 2, 0x333333);
                 
                 // Машина
-                this.car = this.add.sprite(width/2, height * 0.8, 'car').setScale(0.3);
+                this.car = this.add.sprite(width/2, height * 0.7, 'car').setScale(0.25);
                 
-                // Текст проекта
-                this.add.text(width/2, 50, 'MAYAMI AI DRIFT', { 
-                    fontSize: '28px', fill: '#ffffff', fontStyle: 'bold' 
-                }).setOrigin(0.5);
+                // Точка привязки
+                this.pivot = this.add.circle(0, 0, 15, 0xf1c40f);
+                this.line = this.add.graphics();
+                
+                this.scoreText = this.add.text(width - 100, 20, '0', { fontSize: '32px', fill: '#fff' });
 
-                // Звуки
-                this.music = this.sound.add('music', { loop: true, volume: 0.5 });
-                this.music.play();
-
-                // Управление
-                this.input.on('pointerdown', () => {
-                    this.sound.play('drift');
-                    this.car.angle = 20; // Эффект дрифта
-                });
-                this.input.on('pointerup', () => {
-                    this.car.angle = 0;
-                });
+                this.spawnPivot();
+                
+                this.input.on('pointerdown', () => this.isDrifting = true);
+                this.input.on('pointerup', () => this.isDrifting = false);
+                
+                this.sound.add('music', { loop: true, volume: 0.5 }).play();
+            },
+            spawnPivot: function() {
+                const side = Math.random() > 0.5 ? 1 : -1;
+                this.pivot.setPosition(this.game.config.width/2 + (side * 100), this.game.config.height * 0.2);
+            },
+            update: function() {
+                if (this.isDrifting) {
+                    Phaser.Math.RotateAround(this.car, this.pivot.x, this.pivot.y, 0.08);
+                    this.car.angle += 5;
+                    
+                    this.line.clear().lineStyle(4, 0xf1c40f).lineBetween(this.car.x, this.car.y, this.pivot.x, this.pivot.y);
+                } else {
+                    this.line.clear();
+                    this.car.y -= 5;
+                    if (this.car.y < 0) {
+                        this.car.y = this.game.config.height;
+                        this.score++;
+                        this.scoreText.setText(this.score);
+                        this.spawnPivot();
+                    }
+                }
             }
         }
     };
