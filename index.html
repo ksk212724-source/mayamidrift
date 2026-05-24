@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;MAYAMI DRIFT PRO&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;body { margin: 0; background: #2ecc71; overflow: hidden; font-family: sans-serif; }&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const config = {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>type: Phaser.AUTO,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>width: window.innerWidth,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>height: window.innerHeight,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>scene: {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>preload: function() {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.load.image('car', 'car.png');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>create: function() {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const {width, height} = this.game.config;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.roadWidth = 250;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.speed = 5;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.score = 0;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Дорога</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.add.rectangle(width/2, height/2, this.roadWidth, height * 2, 0x333333);</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// UI</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.scoreText = this.add.text(20, 20, 'SCORE: 0', { fontSize: '24px', fill: '#fff', fontStyle: 'bold' }).setDepth(10);</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Машина и Pivot</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.car = this.add.sprite(width/2, height * 0.7, 'car').setScale(0.25);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.pivot = this.add.circle(0, 0, 15, 0xffd700);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.line = this.add.graphics();</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.isDrifting = false;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.spawnPivot();</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.input.on('pointerdown', () =&gt; this.isDrifting = true);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.input.on('pointerup', () =&gt; this.isDrifting = false);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>spawnPivot: function() {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const side = Math.random() &gt; 0.5 ? 1 : -1;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>this.pivot.setPosition(this.game.config.width/2 + (side * 130), this.game.config.height * 0.1);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>update: function() {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (this.isDrifting) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>Phaser.Math.RotateAround(this.car, this.pivot.x, this.pivot.y, 0.08);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.car.angle += 6;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.line.clear().lineStyle(4, 0xffd700).lineBetween(this.car.x, this.car.y, this.pivot.x, this.pivot.y);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.car.y -= this.speed;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.line.clear();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Проверка вылета</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const dist = Math.abs(this.car.x - this.game.config.width/2);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (dist &gt; this.roadWidth / 2 + 30) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.scene.restart();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Переход уровня</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (this.car.y &lt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.car.y = this.game.config.height;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.score += 10;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.speed += 0.2; // Ускорение игры</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.scoreText.setText('SCORE: ' + this.score);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>this.spawnPivot();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>};</p>
+<p class="p1"><span class="Apple-converted-space">    </span>new Phaser.Game(config);</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
