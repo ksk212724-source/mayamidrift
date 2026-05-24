@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI AI DRIFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #2ecc71; }
+    </style>
+</head>
+<body>
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: '#2ecc71',
+        scene: {
+            preload: function() {
+                // Загружаем файлы из твоего репозитория
+                this.load.image('car', 'car.png');
+                this.load.audio('drift', 'drift.mp3');
+                this.load.audio('music', 'music.mp3');
+            },
+            create: function() {
+                const width = this.game.config.width;
+                const height = this.game.config.height;
+
+                // Дорога
+                this.add.rectangle(width/2, height/2, 220, height, 0x333333);
+                
+                // Машина
+                this.car = this.add.sprite(width/2, height * 0.8, 'car').setScale(0.3);
+                
+                // Текст проекта
+                this.add.text(width/2, 50, 'MAYAMI AI DRIFT', { 
+                    fontSize: '28px', fill: '#ffffff', fontStyle: 'bold' 
+                }).setOrigin(0.5);
+
+                // Звуки
+                this.music = this.sound.add('music', { loop: true, volume: 0.5 });
+                this.music.play();
+
+                // Управление
+                this.input.on('pointerdown', () => {
+                    this.sound.play('drift');
+                    this.car.angle = 20; // Эффект дрифта
+                });
+                this.input.on('pointerup', () => {
+                    this.car.angle = 0;
+                });
+            }
+        }
+    };
+    new Phaser.Game(config);
+</script>
+</body>
+</html>
