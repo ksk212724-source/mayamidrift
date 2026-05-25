@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI AI iOS 26 HUB</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            /* Базовые цвета темы iOS 26 Glassmorphism */
+            --bg-color: #000000;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #FFFFFF;
+            --text-secondary: #aaaaaa;
+            --accent-blue: #8ab4f8; /* Цвет для акцентов (как в "🔥 ИСПОЛЬЗОВАТЬ") */
+            
+            /* Скругления iOS */
+            --radius-large: 35px;
+            --radius-medium: 20px;
+            --radius-input: 30px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden; /* Отключаем системный скролл */
+        }
+
+        /* Основной стеклянный контейнер */
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: var(--radius-large);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1; /* Растягиваем на весь экран */
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        h3 { margin: 0; font-size: 16px; color: var(--text-secondary); font-weight: 500; }
+
+        /* Центральный логотип */
+        .logo-area {
+            flex: 1; /* Занимает все свободное место по центру */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #centralLogo {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); /* Легкое свечение */
+        }
+
+        /* Скрытый аудиоплеер для фоновой музыки */
+        #bgMusic { display: none; }
+
+        /* Сетка управления */
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 22px;
+            border-radius: var(--radius-medium);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent; /* Отключаем блик при тапе */
+        }
+
+        .action-btn:active {
+            background: var(--glass-border);
+            transform: scale(0.97);
+        }
+        
+        /* Кнопка с синим акцентом */
+        .action-btn.primary {
+            background: var(--accent-blue);
+            color: #000000;
+            border: none;
+        }
+        
+        .action-btn.primary:active { background: #a0c9ff; }
+
+        /* Область чата/логов */
+        #chat-window {
+            height: 120px; /* Фиксированная высота для логов */
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-medium);
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .log-entry { line-height: 1.4; color: #8ab4f8; } /* Логи синим цветом */
+        .promo-log { color: #f88ab4; } /* Ошибки промокода розовым */
+
+        /* Панель ввода сообщений */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 18px 25px;
+            border-radius: var(--radius-input);
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }
+        
+        #userInput::placeholder { color: #777; }
+        #userInput:focus { border-color: var(--accent-blue); background: rgba(255, 255, 255, 0.1); }
+        
+    </style>
+</head>
+<body>
+
+    <div class="glass-container">
+        <audio id="bgMusic" src="music.mp3" autoplay loop></audio>
+        
+        <header>
+            <h2>MAYAMI AI HUB</h2>
+            <h3>iOS 26 Glassmorphism</h3>
+        </header>
+
+        <div class="logo-area">
+            <img src="logo.png" alt="MAYAMI Logo" id="centralLogo">
+        </div>
+
+        <div id="chat-window">
+            <div class="log-entry">MAYAMI AI Unified Hub online. Waiting for order, Boss @malchicismayami.</div>
+        </div>
+
+        <div class="control-grid">
+            <button class="action-btn primary" onclick="sendAction('ai')">🔥 ИСПОЛЬЗОВАТЬ</button>
+            <button class="action-btn" id="voiceToggle" onclick="toggleVoice()">💬 ОТВЕТ: ТЕКСТ</button>
+            <button class="action-btn" onclick="requestPromo()">🎟 ПРОМОКОД</button>
+            <button class="action-btn" onclick="sendAction('info')">💎 ИНФО О БОССЕ</button>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Напиши сообщение Боссу...">
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready(); // Сообщаем Telegram, что приложение готово
+        tg.expand(); // Растягиваем на весь экран
+        tg.enableClosingConfirmation(); // Подтверждение закрытия
+
+        // Состояния приложения
+        let isVoiceMode = false;
+        const voiceBtn = document.getElementById('voiceToggle');
+        const chatWindow = document.getElementById('chat-window');
+        const music = document.getElementById('bgMusic');
+
+        // Функция отправки JSON-данных в Python (совместима с handle_web_app_data)
+        function sendDataToBot(jsonData) {
+            logMsg(`Sending data to bot: ${JSON.stringify(jsonData)}`);
+            tg.sendData(JSON.stringify(jsonData));
+        }
+
+        // Логирование сообщений в окне чата (симулирует process_message_logic)
+        function logMsg(message, isError = False) {
+            const entry = document.createElement('div');
+            entry.className = isError ? 'log-entry promo-log' : 'log-entry';
+            entry.textContent = `> ${message}`;
+            chatWindow.appendChild(entry);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Авто-скролл вниз
+        }
+
+        // 1. Действия основных кнопок (отправляют action)
+        function sendAction(actionType) {
+            sendDataToBot({ action: actionType });
+        }
+
+        // 2. Переключение режима Voice/Text (связано с USER_VOICE_MODES)
+        function toggleVoice() {
+            isVoiceMode = !isVoiceMode;
+            if (isVoiceMode) {
+                voiceBtn.innerText = "🔊 ОТВЕТ: ГОЛОС";
+                voiceBtn.style.color = "#000000";
+                voiceBtn.style.backgroundColor = "#FFFFFF";
+            } else {
+                voiceBtn.innerText = "💬 ОТВЕТ: ТЕКСТ";
+                voiceBtn.style.color = var(--text-main);
+                voiceBtn.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
+            }
+            logMsg(`Response mode changed to: ${isVoiceMode ? 'VOICE (быстрый алкаш)' : 'TEXT (буквы)'}`);
+            sendDataToBot({ action: 'toggle_mode', mode: isVoiceMode });
+        }
+
+        // 3. Запрос промокода (вызывает системный попап Telegram)
+        function requestPromo() {
+            tg.showPopup({
+                title: '🎟 Промокод',
+                message: 'Введите код Босса @malchicismayami для снятия лимитов:',
+                buttons: [
+                    {id: 'link', type: 'default', text: 'Получить код'},
+                    {id: 'ok', type: 'ok', text: 'Ввести'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'link') {
+                    tg.openTelegramLink('https://t.me/mayamiaichannel');
+                } else if (buttonId === 'ok') {
+                    // Python логика PromoState.waiting_for_promo перехватит ввод
+                    logMsg("Ожидание ввода промокода в ЛС...", True);
+                    //tg.sendData(JSON.stringify({ action: 'promo' })); 
+                }
+            });
+        }
+
+        // 4. Обработка ввода в инпуте (отправляет text запрос в call_text_ai)
+        document.getElementById('userInput').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const textValue = e.target.value.trim();
+                if (textValue !== "") {
+                    logMsg(textValue); // Логируем отправленное
+                    sendDataToBot({ text: textValue }); // Отправляем как текст
+                    e.target.value = ''; // Очищаем ввод
+                }
+            }
+        };
+        
+        // 5. Автозапуск музыки при взаимодействии (Телеграм WebView ограничение)
+        document.body.addEventListener('click', function() {
+            if (music.paused) {
+                music.play().catch(e => logMsg("Music autoplay blocked. Tap screen.", True));
+            }
+        }, { once: true }); // Срабатывает только один раз
+
+    </script>
+</body>
+</html>
