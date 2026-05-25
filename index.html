@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI DRIFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body { margin: 0; background: #050510; overflow: hidden; touch-action: none; }
+        canvas { display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<script>
+const config = {
+    type: Phaser.AUTO,
+    width: 400, height: 700, // Оптимальный размер под экран телефона
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+let player, traffic, road, score = 0, scoreText, bgMusic;
+
+function preload() {
+    this.load.image('player', 'assets/player.png');
+    this.load.image('enemy', 'assets/enemy.png');
+    this.load.image('road', 'assets/road.png');
+    this.load.audio('music', 'assets/music.mp3');
+}
+
+function create() {
+    // Дорога: скроллим текстуру для эффекта скорости
+    road = this.add.tileSprite(200, 350, 400, 700, 'road');
+    
+    // Игрок: внизу экрана
+    player = this.physics.add.sprite(200, 600, 'player');
+    player.setDepth(10);
+    
+    // Группа препятствий
+    traffic = this.physics.add.group();
+    
+    // UI
+    scoreText = this.add.text(20, 20, 'KILLS: 0', { fontSize: '24px', fill: '#FF00FF', fontFamily: 'Courier' });
+
+    // Управление пальцем (в Mini App)
+    this.input.on('pointermove', (p) => {
+        player.x = Phaser.Math.Clamp(p.x, 50, 350);
+    });
+
+    // Музыка
+    bgMusic = this.sound.add('music', { loop: true, volume: 0.3 });
+    this.input.once('pointerdown', () => bgMusic.play());
+
+    // Спавн врагов
+    this.time.addEvent({ delay: 600, callback: spawn, callbackScope: this, loop: true });
+}
+
+function spawn() {
+    let enemy = traffic.create(Phaser.Math.Between(50, 350), -100, 'enemy');
+    enemy.setVelocityY(700 + score);
+    score++;
+    scoreText.setText('KILLS: ' + score);
+}
+
+function update() {
+    road.tilePositionY -= 20; // Скорость полотна
+    
+    // Проверка столкновения
+    this.physics.overlap(player, traffic, () => {
+        bgMusic.stop();
+        this.scene.restart();
+        score = 0;
+    });
+}
+</script>
+</body>
+</html>
