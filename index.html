@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAYAMI AI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background: #000; color: #fff; margin: 0; padding: 20px; height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
+        .logo-wrapper { margin: 40px 0; width: 60%; display: flex; justify-content: center; }
+        #logo { width: 100%; max-width: 250px; height: auto; }
+        .input-container { width: 100%; display: flex; gap: 10px; margin-top: auto; margin-bottom: 20px; }
+        #userInput { flex: 1; padding: 15px; border-radius: 30px; border: 1px solid #333; background: #111; color: #fff; font-size: 16px; outline: none; }
+        #sendBtn { background: #fff; color: #000; border: none; padding: 0 20px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" src="music.mp3" loop autoplay></audio>
+    <div class="logo-wrapper"><img src="logo.png" id="logo" alt="MAYAMI"></div>
+    
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Напиши запрос...">
+        <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            if (input.value.trim() !== "") {
+                tg.sendData(JSON.stringify({text: input.value}));
+                input.value = '';
+            }
+        }
+
+        // Запуск музыки после первого клика
+        document.body.addEventListener('click', () => {
+            document.getElementById('bgMusic').play().catch(()=>{});
+        }, { once: true });
+    </script>
+</body>
+</html>
