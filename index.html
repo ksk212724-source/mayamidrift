@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI AI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { 
+            background-color: #000000; 
+            color: #ffffff; 
+            margin: 0; 
+            padding: 20px; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+        }
+        .logo-wrapper { margin-top: 60px; margin-bottom: 40px; width: 60%; display: flex; justify-content: center; }
+        #logo { width: 100%; max-width: 280px; height: auto; }
+        
+        #responseArea { 
+            flex: 1; width: 90%; color: #888; font-size: 16px; 
+            text-align: center; margin-bottom: 20px; line-height: 1.4;
+        }
+        
+        .input-container { width: 95%; display: flex; gap: 10px; margin-bottom: 30px; }
+        #userInput { 
+            flex: 1; padding: 18px 20px; border-radius: 30px; 
+            border: 1px solid #333; background: #151515; color: #fff; 
+            font-size: 16px; outline: none;
+        }
+        #sendBtn { 
+            background: #fff; color: #000; border: none; width: 55px; height: 55px; 
+            border-radius: 50%; font-size: 22px; cursor: pointer; flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" src="music.mp3" loop autoplay></audio>
+
+    <div class="logo-wrapper"><img src="logo.png" id="logo" alt="MAYAMI"></div>
+    
+    <div id="responseArea">Ожидаю запрос, Босс...</div>
+
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Напиши что-нибудь...">
+        <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const resp = document.getElementById('responseArea');
+            
+            if (input.value.trim() !== "") {
+                resp.innerText = "Думаю...";
+                tg.sendData(JSON.stringify({text: input.value}));
+                input.value = '';
+                
+                // Трюк: закрываем WebApp через 1.5 секунды, 
+                // чтобы ты сразу видел ответ бота в ленте чата
+                setTimeout(() => {
+                    tg.close();
+                }, 1500);
+            }
+        }
+
+        // Запуск музыки по клику
+        document.body.addEventListener('click', () => {
+            document.getElementById('bgMusic').play().catch(()=>{});
+        }, { once: true });
+    </script>
+</body>
+</html>
