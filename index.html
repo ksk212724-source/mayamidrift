@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAYAMI AI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg, #d1d8e0 0%, #a8b2c2 50%, #7d899e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden; /* Чтобы не было скролла */
+        }
+
+        .logo-container {
+            margin-top: 20vh;
+            width: 60%;
+            display: flex;
+            justify-content: center;
+        }
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .input-container {
+            width: 90%;
+            margin-bottom: 50px;
+        }
+        #userInput {
+            width: 100%;
+            padding: 18px 25px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: #2f3542;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        #userInput::placeholder { color: #57606f; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" src="music.mp3" loop></audio>
+
+    <div class="logo-container">
+        <img src="logo.png" alt="MAYAMI LOGO">
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Напиши что-нибудь Боссу...">
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Автоматический запуск музыки при взаимодействии с экраном
+        // (Телеграм требует любого касания для начала воспроизведения)
+        document.body.addEventListener('click', () => {
+            const audio = document.getElementById('bgMusic');
+            audio.play().catch(e => console.log("Музыка ждет взаимодействия"));
+        }, { once: true });
+
+        document.getElementById('userInput').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const text = e.target.value;
+                tg.sendData(JSON.stringify({text: text}));
+                e.target.value = '';
+            }
+        };
+    </script>
+</body>
+</html>
