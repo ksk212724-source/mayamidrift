@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI DRIFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; touch-action: none; }
+        canvas { display: block; margin: auto; }
+    </style>
+</head>
+<body>
+<script>
+const config = {
+    type: Phaser.AUTO,
+    width: 400, height: 700,
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: { preload: preload, create: create, update: update }
+};
+
+const game = new Phaser.Game(config);
+
+let player, traffic, road, score = 0, scoreText, bgMusic;
+
+function preload() {
+    this.load.image('player', 'player.png');
+    this.load.image('enemy', 'enemy.png');
+    this.load.image('road', 'road.png');
+    this.load.audio('music', 'music.mp3');
+}
+
+function create() {
+    road = this.add.tileSprite(200, 350, 400, 700, 'road');
+    player = this.physics.add.sprite(200, 600, 'player');
+    player.setCollideWorldBounds(true);
+    
+    traffic = this.physics.add.group();
+    scoreText = this.add.text(20, 20, 'SCORE: 0', { fontSize: '24px', fill: '#FFF' });
+
+    bgMusic = this.sound.add('music', { loop: true });
+    this.input.once('pointerdown', () => bgMusic.play());
+    this.input.on('pointermove', (p) => { player.x = p.x; });
+
+    this.time.addEvent({ delay: 600, callback: spawn, callbackScope: this, loop: true });
+}
+
+function spawn() {
+    let e = traffic.create(Phaser.Math.Between(50, 350), -100, 'enemy');
+    e.setVelocityY(800 + (score / 5));
+    score += 10;
+    scoreText.setText('SCORE: ' + score);
+}
+
+function update() {
+    road.tilePositionY -= 20;
+    this.physics.overlap(player, traffic, () => {
+        bgMusic.stop();
+        this.scene.restart();
+        score = 0;
+    });
+}
+</script>
+</body>
+</html>
