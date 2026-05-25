@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAYAMI DRIFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; touch-action: none; }
+    </style>
+</head>
+<body>
+<script>
+class Game extends Phaser.Scene {
+    constructor() { super('Game'); }
+    preload() {
+        // Пути изменены (без папки assets/)
+        this.load.image('player', 'player.png');
+        this.load.image('enemy', 'enemy.png');
+        this.load.image('road', 'road.png');
+        this.load.audio('music', 'music.mp3');
+    }
+    create() {
+        this.road = this.add.tileSprite(window.innerWidth/2, window.innerHeight/2, window.innerWidth, window.innerHeight, 'road');
+        this.player = this.physics.add.sprite(window.innerWidth/2, window.innerHeight - 150, 'player');
+        this.player.setCollideWorldBounds(true);
+        this.traffic = this.physics.add.group();
+        this.score = 0;
+        this.scoreText = this.add.text(20, 20, 'SCORE: 0', { fontSize: '24px', fill: '#FFF' });
+        this.bgMusic = this.sound.add('music', { loop: true });
+        this.input.once('pointerdown', () => this.bgMusic.play());
+        this.input.on('pointermove', (p) => { this.player.x = p.x; });
+        this.time.addEvent({ delay: 600, callback: () => {
+            let e = this.traffic.create(Phaser.Math.Between(50, window.innerWidth-50), -100, 'enemy');
+            e.setVelocityY(700);
+            this.score += 10;
+            this.scoreText.setText('SCORE: ' + this.score);
+        }, loop: true });
+    }
+    update() {
+        this.road.tilePositionY -= 20;
+        this.physics.overlap(this.player, this.traffic, () => {
+            this.bgMusic.stop();
+            this.scene.restart();
+            this.score = 0;
+        });
+    }
+}
+new Phaser.Game({
+    type: Phaser.AUTO, width: window.innerWidth, height: window.innerHeight,
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: Game
+});
+</script>
+</body>
+</html>
