@@ -1,0 +1,509 @@
+cat > /home/claude/game_new.html << 'ENDOFFILE'
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MayamiDrift</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+html,body{width:100%;height:100%;overflow:hidden;background:#07080c;position:fixed;top:0;left:0;}
+body{display:flex;justify-content:center;align-items:flex-start;}
+:root{
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
+  --gold:#f5a623;--blue:#4cc9f0;--purple:#a855f7;--green:#57cc99;--red:#e63946;--orange:#f97316;--bg:#07080c;--chroma:#00ffcc;
+}
+#root{position:fixed;overflow:hidden;background:#07080c;top:0;left:0;right:0;bottom:0;width:100%;height:100%;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+#gc{display:block;position:absolute;top:0;left:0;touch-action:none;}
+#hud{position:absolute;top:0;left:0;right:0;padding:calc(var(--sat)+6px) 14px 10px;pointer-events:none;z-index:10;display:none;background:linear-gradient(180deg,rgba(0,0,0,.92)0%,transparent 100%);}
+#scoreNum{font-family:Impact,sans-serif;font-size:38px;color:#fff;line-height:1;text-shadow:0 0 22px rgba(245,166,35,.9);}
+#bestNum{font-size:10px;color:#666;letter-spacing:2px;margin-top:1px;}
+#modeTag{font-size:9px;letter-spacing:3px;text-transform:uppercase;margin-top:2px;font-weight:700;}
+#rhud{position:absolute;top:calc(var(--sat)+6px);right:14px;display:none;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none;z-index:10;}
+#livesRow{display:flex;gap:4px;}
+.minibar{width:56px;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.mbf{height:100%;border-radius:3px;}
+#spFill{background:linear-gradient(90deg,#57cc99,#f5a623);}
+#bFill{background:linear-gradient(90deg,#4cc9f0,#a855f7);}
+#distNum{font-size:9px;color:#666;letter-spacing:1px;}
+#boostLbl{font-size:9px;color:#4cc9f0;letter-spacing:1px;opacity:0;}
+#monHud{position:absolute;top:calc(var(--sat)+58px);left:50%;transform:translateX(-50%);pointer-events:none;z-index:12;display:none;flex-direction:column;align-items:center;gap:3px;}
+#monBar{width:110px;height:6px;background:rgba(255,50,0,.2);border-radius:4px;overflow:hidden;}
+#monFill{height:100%;background:linear-gradient(90deg,#ff4400,#f00);border-radius:4px;}
+#monLbl{font-family:Impact,sans-serif;font-size:13px;color:#ff4400;letter-spacing:3px;}
+#policeHud{position:absolute;top:calc(var(--sat)+58px);left:50%;transform:translateX(-50%);pointer-events:none;z-index:12;display:none;flex-direction:column;align-items:center;gap:3px;}
+#policeBar{width:130px;height:8px;background:rgba(0,100,255,.2);border-radius:4px;overflow:hidden;}
+#policeFill{height:100%;background:linear-gradient(90deg,#0066ff,#ff0000);border-radius:4px;}
+#policeLbl{font-family:Impact,sans-serif;font-size:13px;color:#0099ff;letter-spacing:3px;text-shadow:0 0 10px #0099ff;}
+#airHud{position:absolute;top:calc(var(--sat)+58px);left:50%;transform:translateX(-50%);pointer-events:none;z-index:12;display:none;flex-direction:column;align-items:center;gap:3px;}
+#airLbl{font-family:Impact,sans-serif;font-size:14px;color:#4cc9f0;letter-spacing:3px;text-shadow:0 0 14px #4cc9f0;}
+#airBar{width:130px;height:6px;background:rgba(76,201,240,.2);border-radius:4px;overflow:hidden;}
+#airFill{height:100%;background:linear-gradient(90deg,#4cc9f0,#fff);border-radius:4px;width:0%;}
+/* MAYAMI AI HUD */
+#mayamiAiHud{position:absolute;top:calc(var(--sat)+58px);left:50%;transform:translateX(-50%);pointer-events:none;z-index:12;display:none;flex-direction:column;align-items:center;gap:3px;}
+#mayamiAiBar{width:160px;height:8px;background:rgba(0,255,200,.15);border-radius:4px;overflow:hidden;}
+#mayamiAiFill{height:100%;background:linear-gradient(90deg,#00ffcc,#aa00ff,#ff00ff);border-radius:4px;}
+#mayamiAiLbl{font-family:Impact,sans-serif;font-size:14px;color:#00ffcc;letter-spacing:4px;text-shadow:0 0 18px #00ffcc,0 0 30px #aa00ff;}
+@keyframes mayamiLblPulse{0%,100%{color:#00ffcc;text-shadow:0 0 18px #00ffcc,0 0 30px #aa00ff;}50%{color:#ff00ff;text-shadow:0 0 20px #ff00ff,0 0 40px #00ffcc;}}
+#mayamiAiLbl.active{animation:mayamiLblPulse .8s infinite;}
+#shOv{position:absolute;inset:0;pointer-events:none;z-index:13;border:3px solid rgba(76,201,240,.7);border-radius:4px;opacity:0;}
+#monOv{position:absolute;inset:0;pointer-events:none;z-index:13;border:4px solid rgba(255,50,0,.7);border-radius:4px;opacity:0;}
+#policeOv{position:absolute;inset:0;pointer-events:none;z-index:13;opacity:0;}
+@keyframes polFlash{0%,100%{background:rgba(0,60,255,.12);}50%{background:rgba(255,0,0,.12);}}
+#policeOv.act{animation:polFlash .5s infinite;}
+/* MAYAMI AI overlay */
+#mayamiAiOv{position:absolute;inset:0;pointer-events:none;z-index:14;opacity:0;}
+@keyframes mayamiOvAnim{0%{background:rgba(0,255,200,.08);}25%{background:rgba(170,0,255,.1);}50%{background:rgba(255,0,255,.08);}75%{background:rgba(0,200,255,.1);}100%{background:rgba(0,255,200,.08);}}
+#mayamiAiOv.active{animation:mayamiOvAnim 1.2s infinite;opacity:1;}
+/* MAYAMI AI particles canvas */
+#mayamiCanvas{position:absolute;inset:0;pointer-events:none;z-index:15;display:none;}
+#crashOv{position:absolute;inset:0;pointer-events:none;z-index:16;opacity:0;background:radial-gradient(circle,rgba(255,60,0,.45)0%,transparent 70%);}
+#crashTxt{position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);font-family:Impact,sans-serif;font-size:56px;color:#e63946;pointer-events:none;z-index:17;opacity:0;letter-spacing:4px;text-shadow:0 0 40px rgba(230,57,70,.9);text-align:center;}
+#comboEl{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);font-family:Impact,sans-serif;font-size:56px;color:#f5a623;pointer-events:none;z-index:15;opacity:0;text-shadow:0 0 40px rgba(245,166,35,.9);}
+#notifEl{position:absolute;top:22%;left:50%;transform:translateX(-50%);font-family:Impact,sans-serif;font-size:19px;color:#fff;pointer-events:none;z-index:15;opacity:0;letter-spacing:3px;white-space:nowrap;text-shadow:0 0 16px rgba(255,255,255,.6);}
+#coinFx{position:absolute;inset:0;pointer-events:none;z-index:14;background:radial-gradient(circle,rgba(255,220,60,.18)0%,transparent 70%);opacity:0;}
+#bonusEl{position:absolute;top:44%;left:50%;transform:translateX(-50%);font-family:Impact,sans-serif;font-size:28px;color:#ffd700;pointer-events:none;z-index:15;opacity:0;letter-spacing:2px;text-shadow:0 0 30px rgba(255,215,0,.9);white-space:nowrap;}
+#airplaneEl{position:absolute;pointer-events:none;z-index:18;display:none;font-size:32px;filter:drop-shadow(0 0 12px rgba(76,201,240,.9));}
+#fogOv{position:absolute;inset:0;pointer-events:none;z-index:14;opacity:0;background:rgba(12,14,20,.92);transition:opacity .5s;}
+#fogOv.on{opacity:1;}
+#boostBtn{position:absolute;bottom:calc(var(--sab)+140px);right:14px;width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#a855f7);border:2px solid rgba(255,255,255,.3);display:none;z-index:21;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;box-shadow:0 0 18px rgba(76,201,240,.5);}
+#boostBtn.ready{background:linear-gradient(135deg,#4cc9f0,#a855f7);opacity:1;}
+#boostBtn.empty{background:rgba(255,255,255,.08);opacity:.45;}
+#boostBtn.active{background:linear-gradient(135deg,#00ffcc,#4cc9f0);box-shadow:0 0 30px rgba(0,255,200,.7);}
+#boostBtnIco{font-size:22px;line-height:1;}
+#boostBtnTxt{font-size:7px;letter-spacing:1px;color:#fff;font-family:Impact,sans-serif;}
+#boostBtnBar{position:absolute;bottom:4px;left:6px;right:6px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;}
+#boostBtnFill{height:100%;background:#fff;border-radius:2px;width:0%;}
+/* MAYAMI AI Button */
+#mayamiBtn{position:absolute;bottom:calc(var(--sab)+140px);left:14px;width:62px;height:62px;border-radius:50%;border:2px solid rgba(0,255,200,.5);display:none;z-index:21;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;font-family:Impact,sans-serif;font-size:7px;letter-spacing:1px;color:#fff;text-align:center;}
+@keyframes maymiBtnReady{0%,100%{background:linear-gradient(135deg,#00ffcc,#aa00ff);box-shadow:0 0 20px rgba(0,255,200,.6);}50%{background:linear-gradient(135deg,#ff00ff,#00ffcc);box-shadow:0 0 30px rgba(255,0,255,.8);}}
+#mayamiBtn.ready{animation:maymiBtnReady 1.5s infinite;}
+#mayamiBtn.empty{background:rgba(255,255,255,.06);opacity:.4;}
+#mayamiBtn.active{background:linear-gradient(135deg,#ff00ff,#00ffcc);box-shadow:0 0 40px rgba(0,255,200,.9);}
+#mayamiBtnIco{font-size:16px;line-height:1.1;}
+#mayamiCoolBar{position:absolute;bottom:4px;left:6px;right:6px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;}
+#mayamiCoolFill{height:100%;background:linear-gradient(90deg,#00ffcc,#ff00ff);border-radius:2px;}
+#ctrlArea{position:absolute;bottom:0;left:0;right:0;height:calc(var(--sab)+130px);display:none;z-index:20;}
+#ctrlL,#ctrlR{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;}
+#ctrlL{left:0;border-right:1px solid rgba(255,255,255,.05);}
+#ctrlR{right:0;}
+#ctrlL::after{content:"◀";font-size:44px;color:rgba(255,255,255,.1);}
+#ctrlR::after{content:"▶";font-size:44px;color:rgba(255,255,255,.1);}
+#ctrlL.lit::after,#ctrlR.lit::after{color:rgba(245,166,35,.9);text-shadow:0 0 24px rgba(245,166,35,.6);}
+#ctrlGrad{position:absolute;top:0;left:0;right:0;height:40px;background:linear-gradient(0deg,rgba(0,0,0,.6)0%,transparent 100%);pointer-events:none;}
+#pbtn{position:absolute;top:calc(var(--sat)+6px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.55);font-size:11px;letter-spacing:2px;padding:5px 14px;cursor:pointer;z-index:11;border-radius:20px;display:none;font-family:sans-serif;text-transform:uppercase;pointer-events:all;}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;overflow:hidden;padding-top:var(--sat);padding-bottom:var(--sab);}
+.scr.off{display:none!important;}
+#sMain{background:radial-gradient(ellipse 80% 55% at 50% 15%,rgba(245,166,35,.09)0%,transparent 70%),#07080c;}
+.tag{font-size:10px;color:#f5a623;letter-spacing:5px;text-transform:uppercase;margin-bottom:8px;}
+.logo{font-family:Impact,sans-serif;font-size:60px;color:#fff;line-height:.88;letter-spacing:2px;text-align:center;margin-bottom:5px;}
+.logo span{color:#f5a623;text-shadow:0 0 30px rgba(245,166,35,.8);}
+.sub{font-size:10px;color:#555;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;}
+.coinRow{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cIco{width:16px;height:16px;background:radial-gradient(circle at 40% 35%,#ffe566,#f5a623 60%,#c87800);border-radius:50%;box-shadow:0 0 8px rgba(245,166,35,.5);}
+.cAmt{font-family:Impact,sans-serif;font-size:20px;color:#f5a623;}
+.bRow{font-size:10px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.nav{display:flex;flex-direction:column;gap:7px;width:100%;max-width:240px;padding:0 16px;}
+.btn{padding:12px 0;border:none;font-family:Impact,sans-serif;font-size:18px;letter-spacing:3px;cursor:pointer;border-radius:8px;width:100%;touch-action:manipulation;}
+.btn.p{background:#f5a623;color:#000;box-shadow:0 4px 22px rgba(245,166,35,.45);}
+.btn.p:active{transform:scale(.96);}
+.btn.s{background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.5);font-size:13px;letter-spacing:2px;padding:9px 0;}
+.btn.s:active{background:rgba(255,255,255,.06);}
+/* Car power system */
+#sCarView{background:#07080c;justify-content:flex-start;padding:calc(var(--sat)+8px) 14px calc(var(--sab)+10px);gap:6px;overflow-y:scroll;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-items:center;}
+.cvTitle{font-family:Impact,sans-serif;font-size:26px;color:#fff;letter-spacing:3px;text-align:center;flex-shrink:0;}
+.cvRar{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;text-align:center;}
+.cvPreview{width:80px;height:130px;display:block;flex-shrink:0;}
+.cvPowerLabel{font-family:Impact,sans-serif;font-size:13px;color:#f5a623;letter-spacing:2px;text-align:center;}
+.cvStarsRow{display:flex;gap:4px;justify-content:center;flex-shrink:0;}
+.cvStar{font-size:14px;}
+.cvEffects{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;width:100%;max-width:280px;flex-shrink:0;}
+.cvEffLine{font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1px;line-height:1.6;}
+.cvUpgradeBtn{padding:11px 0;background:linear-gradient(135deg,#f5a623,#ff8800);border:none;font-family:Impact,sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;border-radius:8px;color:#000;width:100%;max-width:280px;flex-shrink:0;}
+.cvUpgradeBtn:disabled{opacity:.35;cursor:default;}
+.cvMaxed{font-size:11px;color:#ffd700;letter-spacing:2px;text-align:center;flex-shrink:0;}
+/* Garage */
+#sGar{background:#07080c;justify-content:flex-start;padding:calc(var(--sat)+10px) 10px calc(var(--sab)+10px);gap:4px;overflow-y:scroll;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-items:center;}
+.stit{font-family:Impact,sans-serif;font-size:30px;color:#fff;letter-spacing:3px;text-align:center;flex-shrink:0;}
+.ssub{font-size:9px;color:#555;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:6px;flex-shrink:0;}
+#carGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:360px;padding:2px 2px 10px;flex-shrink:0;}
+.cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative;}
+.cell.sel{border-color:#f5a623;background:rgba(245,166,35,.08);}
+.cell.lkd{opacity:.35;cursor:default;}
+.cell canvas{width:36px;height:58px;display:block;}
+.cn{font-size:7px;color:rgba(255,255,255,.6);letter-spacing:1px;text-transform:uppercase;text-align:center;}
+.cr{font-size:6px;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.rC{color:#aaa;}.rU{color:#4cc9f0;}.rR{color:#a855f7;}.rE{color:#f97316;}.rM{color:#ff66ff;text-shadow:0 0 6px #ff44ff;}.rL{color:#ffd700;}.rX{color:#00ffcc;text-shadow:0 0 8px #00ffcc;}
+.lkico{position:absolute;top:4px;right:4px;font-size:9px;opacity:.5;}
+.pwrBadge{position:absolute;bottom:3px;right:3px;font-size:7px;background:rgba(245,166,35,.85);color:#000;border-radius:3px;padding:1px 3px;font-weight:700;letter-spacing:.5px;}
+/* Chests */
+#sCh{background:#07080c;justify-content:flex-start;padding:calc(var(--sat)+8px) 10px calc(var(--sab)+10px);gap:5px;overflow-y:scroll;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-items:center;}
+.chScrollArea{width:100%;max-width:380px;display:flex;flex-direction:column;gap:6px;align-items:center;flex-shrink:0;}
+.chGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:360px;}
+.chCard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;overflow:hidden;touch-action:manipulation;}
+.chCard:active{transform:scale(.96);}
+.chCard.free{border-color:rgba(87,204,153,.6);background:rgba(87,204,153,.06);}
+.chCard.free::after{content:'FREE';position:absolute;top:5px;right:-12px;background:#57cc99;color:#000;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 16px;transform:rotate(35deg);}
+.chCard.mega{border-color:rgba(255,215,0,.8);background:rgba(255,215,0,.06);}
+.chCard.elite{border-color:rgba(255,80,0,.7);background:rgba(255,80,0,.06);}
+.chCard.rare{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.05);}
+.chCard.mystery{border-color:rgba(255,100,200,.4);background:rgba(255,100,200,.05);}
+.chCard.cyber{border-color:rgba(0,255,200,.6);background:rgba(0,255,200,.05);}
+.chCard.storm{border-color:rgba(76,201,240,.5);background:rgba(76,201,240,.05);}
+.chCard.diamond{border-color:rgba(185,242,255,.7);background:rgba(185,242,255,.05);}
+.chCard.chroma{border-color:rgba(0,255,204,.9);background:rgba(0,255,204,.07);}
+.chCard.mythic{border-color:rgba(255,80,255,.7);background:rgba(255,80,255,.06);}
+@keyframes megaPulse{0%,100%{box-shadow:0 0 8px rgba(255,215,0,.4);}50%{box-shadow:0 0 22px rgba(255,215,0,.8),0 0 40px rgba(255,100,0,.4);}}
+.chCard.mega{animation:megaPulse 2s infinite;}
+@keyframes diamondPulse{0%,100%{box-shadow:0 0 8px rgba(185,242,255,.4);}50%{box-shadow:0 0 22px rgba(185,242,255,.9),0 0 40px rgba(100,200,255,.5);}}
+.chCard.diamond{animation:diamondPulse 2.5s infinite;}
+@keyframes chromaPulse{0%,100%{box-shadow:0 0 10px rgba(0,255,204,.5),0 0 20px rgba(0,200,255,.3);}33%{box-shadow:0 0 18px rgba(0,255,100,.7),0 0 35px rgba(0,255,200,.5);}66%{box-shadow:0 0 18px rgba(100,0,255,.7),0 0 35px rgba(200,0,255,.5);}}
+.chCard.chroma{animation:chromaPulse 2s infinite;}
+@keyframes mythicPulse{0%,100%{box-shadow:0 0 10px rgba(255,80,255,.5);}50%{box-shadow:0 0 22px rgba(255,80,255,.9),0 0 40px rgba(200,0,255,.6);}}
+.chCard.mythic{animation:mythicPulse 2s infinite;}
+.chIco{font-size:24px;}.chName{font-family:Impact,sans-serif;font-size:12px;letter-spacing:2px;color:#fff;}
+.chCost{font-size:10px;color:#f5a623;font-weight:700;}
+.chDesc{font-size:7px;color:#555;letter-spacing:1px;text-transform:uppercase;text-align:center;line-height:1.3;}
+.chRarTag{font-size:6px;letter-spacing:1px;padding:2px 6px;border-radius:10px;margin-top:2px;font-weight:700;}
+#promoRow{display:flex;gap:6px;width:100%;max-width:320px;flex-shrink:0;}
+#promoIn{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:12px;letter-spacing:2px;padding:8px 10px;border-radius:6px;text-transform:uppercase;outline:none;font-family:sans-serif;}
+#promoIn::placeholder{color:rgba(255,255,255,.2);}
+#promoBtn{padding:8px 12px;background:#f5a623;border:none;color:#000;font-family:Impact,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;border-radius:6px;}
+#promoMsg{font-size:10px;letter-spacing:2px;text-align:center;min-height:14px;flex-shrink:0;}
+#sOpen{background:rgba(7,8,12,.98);z-index:35;}
+.opW{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;width:100%;height:100%;position:relative;}
+#opEm{font-size:72px;cursor:pointer;position:relative;z-index:2;}
+#opEm.shk{animation:shk .5s ease;}
+#opEm.exp{animation:exp .6s ease forwards;}
+@keyframes shk{0%{transform:rotate(0)}20%{transform:rotate(-10deg) scale(1.06)}40%{transform:rotate(10deg) scale(1.1)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}100%{transform:rotate(0)}}
+@keyframes exp{0%{transform:scale(1);opacity:1}40%{transform:scale(1.5)}100%{transform:scale(.1);opacity:0}}
+#confCv{position:absolute;inset:0;pointer-events:none;z-index:1;}
+#opPr{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;cursor:pointer;}
+#opRes{display:none;flex-direction:column;align-items:center;gap:10px;}
+#opResCv{width:70px;height:112px;display:block;}
+#opResNm{font-family:Impact,sans-serif;font-size:22px;color:#fff;letter-spacing:3px;}
+#opResRar{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;}
+#opResMsg{font-size:11px;color:#555;letter-spacing:2px;text-transform:uppercase;}
+#rarGlow{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0;filter:blur(40px);}
+@keyframes carReveal3d{0%{opacity:0;transform:perspective(400px) rotateY(-90deg) scale(.5)}50%{opacity:1;transform:perspective(400px) rotateY(15deg) scale(1.1)}100%{opacity:1;transform:perspective(400px) rotateY(0deg) scale(1)}}
+.carReveal3d{animation:carReveal3d .8s cubic-bezier(.2,1.3,.5,1) forwards;}
+@keyframes legendaryPulse{0%,100%{filter:drop-shadow(0 0 20px gold);}50%{filter:drop-shadow(0 0 40px gold) drop-shadow(0 0 80px orange);}}
+.legendaryReveal{animation:carReveal3d .8s cubic-bezier(.2,1.3,.5,1) forwards,legendaryPulse 1.2s .8s infinite;}
+@keyframes epicPulse{0%,100%{filter:drop-shadow(0 0 15px #f97316);}50%{filter:drop-shadow(0 0 30px #ff6600) drop-shadow(0 0 60px #ff3300);}}
+.epicReveal{animation:carReveal3d .8s cubic-bezier(.2,1.3,.5,1) forwards,epicPulse 1s .8s infinite;}
+@keyframes mythicPulseGlow{0%,100%{filter:drop-shadow(0 0 15px #ff44ff);}50%{filter:drop-shadow(0 0 30px #ff00ff) drop-shadow(0 0 60px #aa00ff);}}
+.mythicReveal{animation:carReveal3d .8s cubic-bezier(.2,1.3,.5,1) forwards,mythicPulseGlow 1s .8s infinite;}
+@keyframes chromaRevealPulse{0%,100%{filter:drop-shadow(0 0 20px #00ffcc) drop-shadow(0 0 40px #00aaff);}33%{filter:drop-shadow(0 0 30px #00ff88) drop-shadow(0 0 60px #00ffcc);}66%{filter:drop-shadow(0 0 30px #aa00ff) drop-shadow(0 0 60px #ff00cc);}}
+.chromaReveal{animation:carReveal3d .8s cubic-bezier(.2,1.3,.5,1) forwards,chromaRevealPulse 1.5s .8s infinite;}
+#sWh{background:#07080c;padding:calc(var(--sat)+8px) 14px calc(var(--sab)+8px);gap:7px;justify-content:flex-start;}
+#wheelWrap{position:relative;width:220px;height:220px;flex-shrink:0;}
+#whCv{width:220px;height:220px;display:block;}
+#whPtr{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:22px;filter:drop-shadow(0 2px 6px rgba(255,100,0,.8));}
+#whRes{font-family:Impact,sans-serif;font-size:18px;color:#f5a623;letter-spacing:3px;text-align:center;min-height:24px;}
+#whCD{font-size:10px;color:#555;letter-spacing:2px;text-align:center;min-height:14px;}
+#whBtn{padding:11px 32px;background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;color:#fff;font-family:Impact,sans-serif;font-size:18px;letter-spacing:3px;cursor:pointer;border-radius:8px;}
+#whBtn:disabled{opacity:.4;cursor:default;}
+#sModeSelect{background:#07080c;padding:calc(var(--sat)+8px) 14px calc(var(--sab)+8px);gap:6px;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modeCard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;width:100%;max-width:320px;cursor:pointer;display:flex;align-items:center;gap:12px;}
+.modeCard:active{transform:scale(.97);}
+.modeCard.sel{border-color:#f5a623;background:rgba(245,166,35,.07);}
+.modeIco{font-size:22px;flex-shrink:0;}
+.modeInfo{flex:1;}
+.modeName{font-family:Impact,sans-serif;font-size:13px;color:#fff;letter-spacing:2px;}
+.modeDesc{font-size:9px;color:#555;letter-spacing:1px;margin-top:2px;}
+.modeCard.mayami-mode{border-color:rgba(0,255,200,.6);background:rgba(0,255,200,.05);}
+@keyframes mayamiModePulse{0%,100%{border-color:rgba(0,255,200,.6);}50%{border-color:rgba(255,0,255,.8);box-shadow:0 0 16px rgba(0,255,200,.4);}}
+.modeCard.mayami-mode.sel{animation:mayamiModePulse 2s infinite;}
+#sOver{background:rgba(7,8,12,.96);}
+.goTag{font-size:10px;color:#e63946;letter-spacing:5px;text-transform:uppercase;margin-bottom:6px;}
+.goTit{font-family:Impact,sans-serif;font-size:56px;color:#fff;line-height:.9;letter-spacing:2px;text-align:center;margin-bottom:10px;}
+.goTit span{color:#e63946;}
+.goStats{display:flex;gap:24px;margin-bottom:14px;}
+.goSt{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.goV{font-family:Impact,sans-serif;font-size:32px;color:#fff;}
+.goL{font-size:9px;color:#555;letter-spacing:2px;text-transform:uppercase;}
+.goEr{font-size:11px;color:#f5a623;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-weight:700;}
+.goNav{display:flex;flex-direction:column;gap:8px;width:100%;max-width:220px;}
+#sPause{background:rgba(7,8,12,.94);}
+.poTit{font-family:Impact,sans-serif;font-size:54px;color:#fff;letter-spacing:3px;}
+.poDv{width:30px;height:2px;background:#f5a623;margin:8px auto 14px;border-radius:2px;}
+.poNav{display:flex;flex-direction:column;gap:8px;width:100%;max-width:220px;}
+#nmMod{position:absolute;inset:0;background:rgba(7,8,12,.97);z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#nmMod.on{display:flex;}
+.nmT{font-family:Impact,sans-serif;font-size:28px;color:#fff;letter-spacing:3px;}
+.nmS{font-size:10px;color:#555;letter-spacing:2px;}
+#nmIn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:16px;letter-spacing:2px;padding:10px 16px;border-radius:8px;width:210px;outline:none;text-align:center;font-family:sans-serif;}
+#nmIn::placeholder{color:rgba(255,255,255,.2);}
+#ldOv{position:absolute;inset:0;background:#07080c;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.ldT{font-family:Impact,sans-serif;font-size:26px;color:#fff;letter-spacing:3px;}
+.ldS{font-size:10px;color:#555;letter-spacing:2px;}
+.ldSp{width:36px;height:36px;border:3px solid rgba(255,255,255,.08);border-top-color:#f5a623;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#sMega{background:rgba(7,8,12,.98);z-index:36;}
+.megaW{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;width:100%;height:100%;position:relative;}
+#megaConfCv{position:absolute;inset:0;pointer-events:none;z-index:1;}
+#megaGlow{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0;filter:blur(60px);}
+#megaRevealGlow{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;filter:blur(50px);}
+#megaBox{font-size:80px;cursor:pointer;position:relative;z-index:2;line-height:1;}
+#megaBox.shake{animation:megaShk .4s ease;}
+@keyframes megaShk{0%{transform:rotate(0) scale(1)}25%{transform:rotate(-14deg) scale(1.12)}50%{transform:rotate(14deg) scale(1.18)}75%{transform:rotate(-7deg) scale(1.06)}100%{transform:rotate(0) scale(1)}}
+@keyframes megaExplode{0%{transform:scale(1);opacity:1}30%{transform:scale(2.4);}100%{transform:scale(0);opacity:0}}
+#megaBox.explode{animation:megaExplode .7s ease forwards;}
+#megaPr{font-size:11px;color:#ffd700;letter-spacing:3px;text-transform:uppercase;z-index:2;text-align:center;cursor:pointer;}
+#megaCounter{z-index:2;display:none;flex-direction:column;align-items:center;gap:6px;}
+#megaCounterLabel{font-family:Impact,sans-serif;font-size:20px;color:#fff;letter-spacing:3px;}
+#megaCounterSub{font-size:10px;color:#888;letter-spacing:2px;}
+#megaProgressDots{display:flex;gap:7px;margin-top:4px;flex-wrap:wrap;justify-content:center;max-width:200px;}
+.megaDot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
+.megaDot.done{background:#ffd700;border-color:#ffd700;box-shadow:0 0 8px rgba(255,215,0,.7);}
+.megaDot.bonus{background:#ff6600;border-color:#ff6600;}
+.megaDot.active{background:#fff;border-color:#fff;box-shadow:0 0 12px rgba(255,255,255,.9);animation:dotPulse .6s infinite;}
+@keyframes dotPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
+#megaRevealCard{z-index:2;display:none;flex-direction:column;align-items:center;gap:7px;}
+#megaRevealCv{width:70px;height:112px;display:block;}
+#megaRevealNm{font-family:Impact,sans-serif;font-size:18px;color:#fff;letter-spacing:3px;text-align:center;}
+#megaRevealRar{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;}
+#megaRevealNew{font-size:10px;color:#57cc99;letter-spacing:2px;}
+#megaTapNext{font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:4px;animation:blinkTap 1s infinite;}
+@keyframes blinkTap{0%,100%{opacity:.5;}50%{opacity:1;}}
+@keyframes megaCardIn{0%{opacity:0;transform:perspective(400px) rotateY(-90deg) scale(.5)}50%{opacity:1;transform:perspective(400px) rotateY(15deg) scale(1.15)}100%{opacity:1;transform:perspective(400px) rotateY(0deg) scale(1)}}
+.megaCardIn{animation:megaCardIn .7s cubic-bezier(.2,1.3,.5,1) forwards;}
+#megaSummary{z-index:2;display:none;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:360px;}
+#megaSumTitle{font-family:Impact,sans-serif;font-size:20px;color:#ffd700;letter-spacing:4px;}
+#megaSumCards{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;overflow-y:auto;max-height:42vh;padding:4px;-webkit-overflow-scrolling:touch;}
+.megaThumb{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.04);border-radius:8px;padding:6px 4px;min-width:56px;}
+.megaThumb canvas{width:36px;height:58px;display:block;}
+.megaThumbNm{font-size:7px;color:rgba(255,255,255,.7);letter-spacing:1px;text-align:center;text-transform:uppercase;}
+.megaThumbRar{font-size:6px;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+#megaCloseBtn{padding:11px 30px;background:linear-gradient(135deg,#ffd700,#f5a623);border:none;color:#000;font-family:Impact,sans-serif;font-size:17px;letter-spacing:3px;cursor:pointer;border-radius:8px;z-index:3;}
+</style>
+</head>
+<body>
+<div id="root">
+<canvas id="gc"></canvas>
+<canvas id="mayamiCanvas"></canvas>
+
+<div id="ldOv">
+  <div class="ldT">MAYAMI DRIFT</div>
+  <div class="ldSp"></div>
+  <div class="ldS" id="ldMsg">LOADING...</div>
+</div>
+
+<div id="hud"><div id="scoreNum">0</div><div id="bestNum">BEST: 0</div><div id="modeTag"></div></div>
+<div id="rhud">
+  <div id="livesRow"></div>
+  <div class="minibar"><div class="mbf" id="spFill"></div></div>
+  <div id="distNum">0 M</div>
+  <div class="minibar"><div class="mbf" id="bFill"></div></div>
+  <div id="boostLbl">BOOST</div>
+</div>
+<div id="monHud"><div id="monLbl">👾 MONSTER</div><div id="monBar"><div id="monFill"></div></div></div>
+<div id="policeHud"><div id="policeLbl">🚔 POLICE!</div><div id="policeBar"><div id="policeFill"></div></div></div>
+<div id="airHud"><div id="airLbl">✈️ AIRBORNE!</div><div id="airBar"><div id="airFill"></div></div></div>
+<div id="mayamiAiHud"><div id="mayamiAiLbl">✨ MAYAMI AI</div><div id="mayamiAiBar"><div id="mayamiAiFill" style="width:100%"></div></div></div>
+<div id="comboEl"></div>
+<div id="notifEl"></div>
+<div id="bonusEl"></div>
+<div id="coinFx"></div>
+<div id="shOv"></div>
+<div id="monOv"></div>
+<div id="policeOv"></div>
+<div id="mayamiAiOv"></div>
+<div id="crashOv"></div>
+<div id="crashTxt">💥 CRASH!</div>
+<div id="airplaneEl">✈️</div>
+<div id="fogOv"></div>
+<button id="pbtn">⏸ PAUSE</button>
+<div id="boostBtn" class="empty">
+  <div id="boostBtnIco">🚀</div>
+  <div id="boostBtnTxt">BOOST</div>
+  <div id="boostBtnBar"><div id="boostBtnFill"></div></div>
+</div>
+<div id="mayamiBtn" class="empty">
+  <div id="mayamiBtnIco">✨</div>
+  <div style="font-size:6px;letter-spacing:.5px;">MAYAMI</div>
+  <div style="font-size:6px;letter-spacing:.5px;">AI</div>
+  <div id="mayamiCoolBar"><div id="mayamiCoolFill" style="width:0%"></div></div>
+</div>
+<div id="ctrlArea">
+  <div id="ctrlGrad"></div>
+  <div id="ctrlL"></div>
+  <div id="ctrlR"></div>
+</div>
+
+<div id="nmMod">
+  <div class="nmT">YOUR NAME</div>
+  <div class="nmS">For the record</div>
+  <input id="nmIn" maxlength="14" placeholder="RACER" autocomplete="off" spellcheck="false">
+  <button class="btn p" id="nmOk" style="width:210px">OK</button>
+</div>
+
+<!-- MAIN MENU -->
+<div id="sMain" class="scr off">
+  <div class="tag">Street Racing</div>
+  <div class="logo">MAYAMI<br><span>DRIFT</span></div>
+  <div class="sub">Swipe · Collect · Survive</div>
+  <div class="coinRow"><div class="cIco"></div><div class="cAmt" id="mmC">0</div></div>
+  <div class="bRow" id="mmB">BEST: 0</div>
+  <div class="nav">
+    <button class="btn p" id="bPlay">PLAY</button>
+    <button class="btn s" id="bGar">🚗 GARAGE</button>
+    <button class="btn s" id="bCh">📦 CHESTS</button>
+    <button class="btn s" id="bWh">🎡 FORTUNE WHEEL</button>
+  </div>
+</div>
+
+<!-- GARAGE -->
+<div id="sGar" class="scr off">
+  <div class="stit">GARAGE</div>
+  <div class="ssub">Select your ride · Tap to upgrade</div>
+  <div id="carGrid"></div>
+  <button class="btn s" id="garBack" style="margin-top:8px;width:150px;flex-shrink:0;">← BACK</button>
+</div>
+
+<!-- CAR VIEW / UPGRADE -->
+<div id="sCarView" class="scr off">
+  <div class="cvTitle" id="cvName">CAR NAME</div>
+  <div class="cvRar" id="cvRarEl">COMMON</div>
+  <canvas class="cvPreview" id="cvCanvas" width="80" height="130"></canvas>
+  <div class="cvPowerLabel" id="cvPowerLbl">⚡ POWER: 0 / 8</div>
+  <div class="cvStarsRow" id="cvStars"></div>
+  <div class="cvEffects" id="cvEffects"><div class="cvEffLine">Select a car to see effects</div></div>
+  <button class="cvUpgradeBtn" id="cvUpgradeBtn">UPGRADE</button>
+  <div class="cvMaxed" id="cvMaxedLbl" style="display:none">⭐ FULLY UPGRADED ⭐</div>
+  <button class="btn s" id="cvBack" style="width:150px;flex-shrink:0;margin-top:4px;">← GARAGE</button>
+</div>
+
+<!-- CHESTS -->
+<div id="sCh" class="scr off">
+  <div class="stit" style="flex-shrink:0;">CHESTS</div>
+  <div class="ssub" style="flex-shrink:0;">Open to unlock cars</div>
+  <div class="coinRow" style="flex-shrink:0;"><div class="cIco"></div><div class="cAmt" id="csC">0</div></div>
+  <div class="chScrollArea">
+    <div class="chGrid">
+      <div class="chCard free" id="fcCard" data-t="free"><div class="chIco">🎁</div><div class="chName">FREE</div><div class="chCost" id="fcCost">FREE</div><div class="chDesc">Daily · Common+</div><div class="chRarTag" style="background:rgba(170,170,170,.15);color:#aaa;">COMMON</div></div>
+      <div class="chCard" style="border-color:rgba(76,201,240,.3)" data-t="basic"><div class="chIco">📦</div><div class="chName">BASIC</div><div class="chCost">🪙 50</div><div class="chDesc">85% Common · 15% Uncommon</div><div class="chRarTag" style="background:rgba(76,201,240,.1);color:#4cc9f0;">COMMON+</div></div>
+    </div>
+    <div class="chGrid">
+      <div class="chCard mystery" data-t="mystery"><div class="chIco">🎲</div><div class="chName">MYSTERY</div><div class="chCost">🪙 120</div><div class="chDesc">Random · All rarities</div><div class="chRarTag" style="background:rgba(255,100,200,.1);color:#ff64c8;">RANDOM!</div></div>
+      <div class="chCard rare" data-t="rare"><div class="chIco">💜</div><div class="chName">RARE</div><div class="chCost">🪙 200</div><div class="chDesc">Uncommon-Rare · 1% Chroma</div><div class="chRarTag" style="background:rgba(168,85,247,.15);color:#a855f7;">UNCOMMON+</div></div>
+    </div>
+    <div class="chGrid">
+      <div class="chCard cyber" data-t="cyber"><div class="chIco">⚡</div><div class="chName">CYBER</div><div class="chCost">🪙 350</div><div class="chDesc">Rare & Epic · 1% Chroma</div><div class="chRarTag" style="background:rgba(0,255,200,.1);color:#00ffc8;">RARE+</div></div>
+      <div class="chCard storm" data-t="storm"><div class="chIco">🌊</div><div class="chName">STORM</div><div class="chCost">🪙 500</div><div class="chDesc">Rare-Epic · Mythic · 1% Chroma</div><div class="chRarTag" style="background:rgba(76,201,240,.15);color:#4cc9f0;">RARE→EPIC</div></div>
+    </div>
+    <div class="chGrid">
+      <div class="chCard mythic" data-t="mythic"><div class="chIco">🔮</div><div class="chName">MYTHIC</div><div class="chCost">🪙 600</div><div class="chDesc">40% Mythic · 1% Chroma</div><div class="chRarTag" style="background:rgba(255,80,255,.15);color:#ff50ff;">MYTHIC</div></div>
+      <div class="chCard elite" data-t="elite"><div class="chIco">🔥</div><div class="chName">ELITE</div><div class="chCost">🪙 700</div><div class="chDesc">60% Epic/Mythic · 40% Legend</div><div class="chRarTag" style="background:rgba(255,80,0,.15);color:#ff5000;">EPIC+</div></div>
+    </div>
+    <div class="chGrid">
+      <div class="chCard" style="border-color:rgba(255,215,0,.4)" data-t="legendary"><div class="chIco">👑</div><div class="chName">LEGEND</div><div class="chCost">🪙 1500</div><div class="chDesc">100% Legendary · 1% Chroma</div><div class="chRarTag" style="background:rgba(255,215,0,.15);color:#ffd700;">LEGENDARY</div></div>
+      <div class="chCard chroma" data-t="chroma"><div class="chIco">🌈</div><div class="chName">CHROMA</div><div class="chCost">🪙 5000</div><div class="chDesc">100% CHROMA guaranteed!</div><div class="chRarTag" style="background:rgba(0,255,200,.2);color:#00ffcc;">CHROMA</div></div>
+    </div>
+    <div style="width:100%;max-width:360px;">
+      <div class="chCard mega" data-t="mega" id="megaCard" style="flex-direction:row;gap:12px;padding:12px 16px;">
+        <div style="font-size:28px;">🌟</div>
+        <div style="flex:1;"><div class="chName" style="font-size:14px;">MEGA CHEST</div><div class="chDesc" style="margin-top:4px;">5+ cars! Epic & Legend · 1% Chroma</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;"><div class="chCost" style="font-size:11px;" id="megaCost">🪙 2500</div><div class="chRarTag" style="background:rgba(255,215,0,.2);color:#ffd700;padding:3px 8px;">ALL RARITY</div></div>
+      </div>
+    </div>
+    <div style="width:100%;max-width:360px;">
+      <div class="chCard diamond" data-t="diamond" style="flex-direction:row;gap:12px;padding:12px 16px;">
+        <div style="font-size:28px;">💎</div>
+        <div style="flex:1;"><div class="chName" style="font-size:14px;">DIAMOND</div><div class="chDesc" style="margin-top:4px;">8 cars · 3 Legendary · 5% Chroma!</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;"><div class="chCost" style="font-size:11px;">🪙 5000</div><div class="chRarTag" style="background:rgba(185,242,255,.15);color:#b9f2ff;padding:3px 8px;">LEGEND×3</div></div>
+      </div>
+    </div>
+  </div>
+  <div id="promoRow" style="margin-top:4px;"><input id="promoIn" maxlength="20" placeholder="PROMO CODE" autocomplete="off" spellcheck="false"><button id="promoBtn">USE</button></div>
+  <div id="promoMsg"></div>
+  <button class="btn s" id="chBack" style="width:150px;flex-shrink:0;">← BACK</button>
+</div>
+
+<!-- CHEST OPEN -->
+<div id="sOpen" class="scr off">
+  <div class="opW">
+    <canvas id="confCv"></canvas>
+    <div id="rarGlow"></div>
+    <div id="opEm">📦</div>
+    <div id="opPr">TAP TO OPEN</div>
+    <div id="opRes">
+      <canvas id="opResCv" width="70" height="112"></canvas>
+      <div id="opResNm"></div>
+      <div id="opResRar"></div>
+      <div id="opResMsg"></div>
+      <button class="btn p" id="opClose" style="width:170px">AWESOME!</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEGA CHEST -->
+<div id="sMega" class="scr off">
+  <div class="megaW">
+    <canvas id="megaConfCv"></canvas>
+    <div id="megaGlow"></div>
+    <div id="megaRevealGlow"></div>
+    <div id="megaBox">🌟</div>
+    <div id="megaPr">TAP TO OPEN!</div>
+    <div id="megaCounter"><div id="megaCounterLabel">CAR 1 / 5</div><div id="megaCounterSub">TAP TO REVEAL NEXT</div><div id="megaProgressDots"></div></div>
+    <div id="megaRevealCard"><canvas id="megaRevealCv" width="70" height="112"></canvas><div id="megaRevealNm">NAME</div><div id="megaRevealRar">RARITY</div><div id="megaRevealNew"></div><div id="megaTapNext">▼ TAP FOR NEXT ▼</div></div>
+    <div id="megaSummary"><div id="megaSumTitle">🌟 ALL CARS!</div><div id="megaSumCards"></div><button id="megaCloseBtn">AWESOME!</button></div>
+  </div>
+</div>
+
+<!-- FORTUNE WHEEL -->
+<div id="sWh" class="scr off">
+  <div class="stit">FORTUNE WHEEL</div>
+  <div class="ssub">Once per day · Free spin!</div>
+  <div id="wheelWrap"><canvas id="whCv" width="220" height="220"></canvas><div id="whPtr">▼</div></div>
+  <div id="whRes"></div>
+  <div id="whCD"></div>
+  <button id="whBtn">SPIN!</button>
+  <button class="btn s" id="whBack" style="margin-top:6px;width:150px">← BACK</button>
+</div>
+
+<!-- MODE SELECT -->
+<div id="sModeSelect" class="scr off">
+  <div class="stit">GAME MODE</div>
+  <div class="ssub">Choose your challenge</div>
+  <div class="modeCard sel" data-mode="classic"><div class="modeIco">🏁</div><div class="modeInfo"><div class="modeName">CLASSIC</div><div class="modeDesc">Normal racing · Standard rules</div></div></div>
+  <div class="modeCard" data-mode="fog"><div class="modeIco">🌫️</div><div class="modeInfo"><div class="modeName">FOG RUN</div><div class="modeDesc">Near-zero visibility · Pure reflexes</div></div></div>
+  <div class="modeCard" data-mode="extreme"><div class="modeIco">💀</div><div class="modeInfo"><div class="modeName">EXTREME</div><div class="modeDesc">High speed · 3x score · Hard!</div></div></div>
+  <button class="btn p" id="modeStart" style="width:200px;margin-top:4px">START!</button>
+  <button class="btn s" id="modeBack" style="width:150px">← BACK</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="sOver" class="scr off">
+  <div class="goTag">GAME OVER</div>
+  <div class="goTit">YOU<br><span>CRASHED</span></div>
+  <div class="goStats">
+    <div class="goSt"><div class="goV" id="goSc">0</div><div class="goL">Score</div></div>
+    <div class="goSt"><div class="goV" id="goBs">0</div><div class="goL">Best</div></div>
+    <div class="goSt"><div class="goV" id="goCo">0</div><div class="goL">Coins</div></div>
+  </div>
+  <div class="goEr" id="goEr">+ 0 🪙 EARNED</div>
+  <div class="goNav">
+    <button class="btn p" id="goRe" style="width:100%">RETRY</button>
+    <button class="btn s" id="goMn" style="width:100%">MAIN MENU</button>
+  </div>
+</div>
+
+<!-- PAUSE -->
+<div id="sPause" class="scr off">
+  <div class="poTit">PAUSE</div>
+  <div class="poDv"></div>
+  <div class="poNav">
+    <button class="btn p" id="pRes" style="width:100%">RESUME</button>
+    <button class="btn s" id="pRst" style="width:100%">RESTART</button>
+    <button class="btn s" id="pMn" style="width:100%">MAIN MENU</button>
+  </div>
+</div>
+</div>
+ENDOFFILE
+echo "HTML written: $(wc -c < /home/claude/game_new.html)"
